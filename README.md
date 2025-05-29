@@ -7,3 +7,5 @@ You need
 . Mistral OCR API
 . IMGBB API
 
+Copy .py in the folder and run 'streamlit run pdf2text_mistral.py --server.headless true'
+
