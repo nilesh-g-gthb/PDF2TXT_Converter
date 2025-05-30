@@ -7,6 +7,8 @@ from mistralai import Mistral
 from datetime import datetime
 import time
 
+image_urls = ""
+
 # Init Mistral
 api_key = os.getenv("MISTRAL_API_KEY")
 client = Mistral(api_key=api_key)
@@ -86,8 +88,11 @@ if st.session_state.images and st.session_state.ocr_texts:
         for i, (url, text) in enumerate(zip(st.session_state.imgbb_urls, st.session_state.ocr_texts)):
             full_text += f"\n\n--- Page {i+1} ---\n\n{text}"
         st.success("🎉 Recovered OCR Results")
-        st.text_area("📄 Extracted Text", full_text.strip(), height=300)
-        st.download_button("⬇️ Download as .txt", full_text.strip(), file_name="ocr_output.txt")
+        # st.text_area("📄 Extracted Text", full_text.strip(), height=300)
+        st.text_area("📄 Extracted Text", full_text.strip(), height=300, key="extracted_text_1")
+        # st.download_button("⬇️ Download as .txt", full_text.strip(), file_name="ocr_output.txt")
+        st.download_button("⬇️ Download as .txt", full_text.strip(), file_name="ocr_output.txt", key="download_1")
+
 
 # ----- Upload PDF Flow -----
 if option == "📤 Upload PDF (Full Auto)":
@@ -130,22 +135,28 @@ if option == "📤 Upload PDF (Full Auto)":
 
         if full_text:
             st.success("🎉 OCR Completed")
-            st.text_area("📄 Extracted Text", full_text.strip(), height=300)
-            st.download_button("⬇️ Download as .txt", full_text.strip(), file_name="ocr_output.txt")
+            # st.text_area("📄 Extracted Text", full_text.strip(), height=300)
+            st.text_area("📄 Extracted Text", full_text.strip(), height=300, key="extracted_text_2")
+            st.download_button("⬇️ Download as .txt", full_text.strip(), file_name="ocr_output.txt", key="download_final")
+
 
 # ----- Image URL Flow -----
 elif option == "🌐 Paste Image URL":
     image_urls = st.text_area("Enter one or more HTTPS image URLs (separated by commas or newlines)")
 if st.button("🧠 Run OCR"):
-    urls = [url.strip() for part in image_urls.splitlines() for url in part.split(",") if url.strip().startswith("https://")]
+    if image_urls:  # <- This avoids calling splitlines() on None
+        urls = [url.strip() for part in image_urls.splitlines() for url in part.split(",") if url.strip().startswith("https://")]
+    else:
+        urls = []
+
     if urls:
         for idx, url in enumerate(urls, 1):
             with st.spinner(f"Running OCR on image {idx}..."):
                 try:
                     extracted = run_ocr_on_image_url(url)
                     st.success(f"✅ OCR Completed for image {idx}")
-                    st.text_area(f"📄 Extracted Text (Image {idx})", extracted, height=300)
-                    st.download_button(f"⬇️ Download Image {idx} Text", extracted, file_name=f"ocr_output_{idx}.txt")
+                    st.text_area(f"📄 Extracted Text (Image {idx})", extracted, height=300, key=f"extracted_text_img_{idx}")
+                    st.download_button(f"⬇️ Download Image {idx} Text", extracted, file_name=f"ocr_output_{idx}.txt", key=f"download_img_{idx}")
                 except Exception as e:
                     st.error(f"❌ Error for image {idx}: {e}")
     else:
